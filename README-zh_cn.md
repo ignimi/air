@@ -6,6 +6,23 @@
 
 [English](README.md) | 简体中文 | [繁體中文](README-zh_tw.md)
 
+## 与源项目异同
+
+对 [air](https://github.com/air-verse/air) 的功能进行扩展, 增加前端监控构建功能,适用于前后端处于同一项目中的场景.
+
+源项目专注于Go的热加载, 监控前端并构建不适合合并进去.
+
+配置文件增加内容
+
+```toml
+[frontend]
+  front_build_cmd = "cd frontend && pnpm run build"
+  front_build_dir = "frontend/dist/"
+  front_dir = "frontend/"
+```
+
+- 默认空值,不启用
+
 ## 开发动机
 
 当我用 Go 和 [gin](https://github.com/gin-gonic/gin) 框架开发网站时，gin 缺乏实时重载的功能是令人遗憾的。我曾经尝试过 [fresh](https://github.com/pilu/fresh) ，但是它用起来不太灵活，所以我试着用更好的方式来重写它。Air 就这样诞生了。此外，非常感谢 [pilu](https://github.com/pilu)。没有 fresh 就不会有 air :)

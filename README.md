@@ -6,6 +6,22 @@
 
 English | [简体中文](README-zh_cn.md) | [繁體中文](README-zh_tw.md) | [日本語](README-ja.md)
 
+## Differences and similarities with the source project
+
+Expand the functions of [air](https://github.com/air-verse/air) and add front-end monitoring and building functions, which is suitable for scenarios where the front-end and back-end are in the same project.
+
+The source project focuses on hot loading of Go, monitoring the frontend and building is not suitable for merging.
+
+```toml
+# Add content to configuration file
+[frontend]
+  front_build_cmd = "cd frontend && pnpm run build"
+  front_build_dir = "frontend/dist/"
+  front_dir = "frontend/"
+```
+
+- Default empty value, not enabled
+
 ## Motivation
 
 When I started developing websites in Go and using [gin](https://github.com/gin-gonic/gin) framework, it was a pity

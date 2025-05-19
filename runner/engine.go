@@ -369,6 +369,15 @@ func (e *Engine) start() {
 		default:
 		}
 
+		// if frontend files changed, build
+		if e.config.Frontend.IsFilled() {
+			if !e.checkFrontendBuildDir(filename) && e.checkFrontendFile(filename) {
+				e.mainLog("frontend files changed, build")
+				go e.buildFrontend()
+				continue
+			}
+		}
+
 		// if current app is running, stop it
 		e.stopBin()
 
@@ -482,6 +491,16 @@ func (e *Engine) runCommandCopyOutput(command string) (string, error) {
 func (e *Engine) building() (string, error) {
 	e.buildLog("building...")
 	output, err := e.runCommandCopyOutput(e.config.Build.Cmd)
+	if err != nil {
+		return output, err
+	}
+	return output, nil
+}
+
+// run frontend build cmd option in .air.toml
+func (e *Engine) frontendBuild() (string, error) {
+	e.buildLog("frontend building...")
+	output, err := e.runCommandCopyOutput(e.config.Frontend.BuildCmd)
 	if err != nil {
 		return output, err
 	}
@@ -715,4 +734,49 @@ func (e *Engine) Stop() {
 		e.runnerLog("failed to execute post_cmd, error: %s", err.Error())
 	}
 	close(e.exitCh)
+}
+
+func (e *Engine) buildFrontend() {
+	if !e.config.Frontend.IsFilled() {
+		return
+	}
+
+	e.buildRunCh <- true
+	defer func() {
+		<-e.buildRunCh
+	}()
+
+	select {
+	case <-e.buildRunStopCh:
+		return
+	default:
+	}
+	var err error
+	if output, err := e.frontendBuild(); err != nil {
+		e.buildLog("failed to build, error: %s", err.Error())
+		_ = e.writeBuildErrorLog(err.Error())
+		if e.config.Build.StopOnError {
+			if e.config.Proxy.Enabled {
+				e.proxy.BuildFailed(BuildFailedMsg{
+					Error:   err.Error(),
+					Command: e.config.Frontend.BuildCmd,
+					Output:  output,
+				})
+			}
+			return
+		}
+	}
+
+	select {
+	case <-e.buildRunStopCh:
+		return
+	case <-e.exitCh:
+		e.mainDebug("exit in buildRun")
+		return
+	default:
+	}
+	if err = e.runBin(); err != nil {
+		e.runnerLog("failed to run, error: %s", err.Error())
+	}
+
 }
