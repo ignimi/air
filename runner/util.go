@@ -132,6 +132,16 @@ func (e *Engine) checkIncludeDir(path string) (bool, bool) {
 	return false, walkDir
 }
 
+func (e *Engine) checkFrontendFile(path string) bool {
+	// check if the path is under frontend dir
+	return strings.HasPrefix(path, e.config.frontendDirPath())
+}
+
+func (e *Engine) checkFrontendBuildDir(path string) bool {
+	// check if the path is under frontend build dir
+	return strings.HasPrefix(path, e.config.frontendBuildDirPath())
+}
+
 func (e *Engine) checkIncludeFile(path string) bool {
 	cleanName := cleanPath(e.config.rel(path))
 	iFile := e.config.Build.IncludeFile

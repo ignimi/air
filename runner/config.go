@@ -23,15 +23,16 @@ const (
 
 // Config is the main configuration structure for Air.
 type Config struct {
-	Root        string    `toml:"root" usage:"Working directory, . or absolute path, please note that the directories following must be under root"`
-	TmpDir      string    `toml:"tmp_dir" usage:"Temporary directory for air"`
-	TestDataDir string    `toml:"testdata_dir"`
-	Build       cfgBuild  `toml:"build"`
-	Color       cfgColor  `toml:"color"`
-	Log         cfgLog    `toml:"log"`
-	Misc        cfgMisc   `toml:"misc"`
-	Screen      cfgScreen `toml:"screen"`
-	Proxy       cfgProxy  `toml:"proxy"`
+	Root        string      `toml:"root" usage:"Working directory, . or absolute path, please note that the directories following must be under root"`
+	TmpDir      string      `toml:"tmp_dir" usage:"Temporary directory for air"`
+	TestDataDir string      `toml:"testdata_dir"`
+	Build       cfgBuild    `toml:"build"`
+	Color       cfgColor    `toml:"color"`
+	Log         cfgLog      `toml:"log"`
+	Misc        cfgMisc     `toml:"misc"`
+	Screen      cfgScreen   `toml:"screen"`
+	Proxy       cfgProxy    `toml:"proxy"`
+	Frontend    cfgFrontend `toml:"frontend"`
 }
 
 type cfgBuild struct {
@@ -92,6 +93,19 @@ type cfgProxy struct {
 	Enabled   bool `toml:"enabled" usage:"Enable live-reloading on the browser"`
 	ProxyPort int  `toml:"proxy_port" usage:"Port for proxy server"`
 	AppPort   int  `toml:"app_port" usage:"Port for your app"`
+}
+
+type cfgFrontend struct {
+	FrontDir string `toml:"front_dir" usage:"Directory for frontend files"`
+	BuildCmd string `toml:"front_build_cmd" usage:"Command to build frontend files"`
+	BuildDir string `toml:"front_build_dir" usage:"Directory to store built frontend files"`
+}
+
+func (c *cfgFrontend) IsFilled() bool {
+	if c.BuildCmd != "" || c.BuildDir != "" || c.FrontDir != "" {
+		return true
+	}
+	return false
 }
 
 type sliceTransformer struct{}
@@ -386,6 +400,14 @@ func (c *Config) rel(path string) string {
 		return ""
 	}
 	return s
+}
+
+func (c *Config) frontendDirPath() string {
+	return joinPath(c.Root, c.Frontend.FrontDir)
+}
+
+func (c *Config) frontendBuildDirPath() string {
+	return joinPath(c.Root, c.Frontend.BuildDir)
 }
 
 // withArgs returns a new config with the given arguments added to the configuration.
